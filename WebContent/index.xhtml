@@ -1,0 +1,92 @@
+<html xmlns="http://www.w3.org/1999/xhtml"  
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:f="http://java.sun.com/jsf/core">  
+  
+    <h:head>
+  		<title>GK Project</title>
+  		
+  		<style>
+	  		.ui-datascroller .ui-datascroller-item {
+			    border-bottom: 1px solid #A8A8A8;
+			    padding: 25px 10px;
+			}
+			
+			#results table, #results table tr, #results table td
+			{
+			    border: none !important;
+			}
+		</style>
+    </h:head>  
+      
+    <h:body>  
+      
+        <h:form id="scan">
+        	<p:growl id="growl" />
+
+        	<p:remoteCommand name="search" update="results scan" actionListener="#{searchView.search}" />
+        	
+		    <p:panel id="panel" header="Scan website" style="margin-bottom:10px;">
+		        <p:messages id="messages" />
+		 
+		        <h:panelGrid columns="3" cellpadding="5">
+		            <h:outputLabel for="query" value="Website: *" />
+		            <p:inputText id="query" value="#{searchView.websiteUrl}" required="true" label="Query">
+		                <f:validateLength minimum="2" />
+		            </p:inputText>
+		            <p:message for="query" />
+		        </h:panelGrid>
+			    
+			    <p:commandButton value="Scan" onclick="PF('pbAjax').start();PF('poll').start();PF('startButton').disable()" async="true" action="#{searchView.search}" widgetVar="startButton" />
+			    <p:commandButton value="Cancel" actionListener="#{searchView.cancel}" oncomplete="PF('poll').stop();PF('pbAjax').cancel();PF('startButton').enable()" />
+			    <br /><br />
+			    <p:progressBar widgetVar="pbAjax" ajax="true" value="#{searchView.progress}" labelTemplate="{value}%" styleClass="animated" global="false">
+			        <p:ajax event="complete" listener="#{searchView.onComplete}" update="growl" oncomplete="PF('poll').stop();PF('startButton').enable()"/>
+			    </p:progressBar>
+			    
+			    <p:poll widgetVar="poll" listener="#{searchView.onUpdate}" update="statistics results" autoStart="false" interval="2" />
+		    </p:panel>
+		</h:form>
+		
+		<h:panelGroup id="statistics" layout="block">
+			<p:panel header="Total statistics" style="margin-bottom:10px;">
+		    	<p:panelGrid columns="2">
+				    <h:outputText value="Processed pages:" />
+				    <h:outputText value="#{searchView.processedPages}" />
+				 
+				    <h:outputText value="Processed images:" />
+				    <h:outputText value="#{searchView.processedImages}" />
+				 
+				    <h:outputText value="Total faces:" />
+				    <h:outputText value="#{searchView.totalFaces}" />
+				 
+				    <h:outputText value="Total persons:" />
+				    <h:outputText value="#{searchView.totalNames}" />
+				</p:panelGrid>
+		    </p:panel>
+		</h:panelGroup>
+		
+		<h:form id="results"> 
+		    <p:dataScroller value="#{searchView.results}" var="result" chunkSize="10">
+		 
+		        <h:panelGrid columns="2" style="width:100%" columnClasses="image,description">		
+		        	<p:graphicImage value="#{result.path}" /> 
+		         
+		            <p:outputPanel>
+		                <h:panelGrid columns="2" layout="grid">
+		                    <h:outputText value="Title:" />
+		                    <h:outputText value="#{result.title}"/>
+		 
+		                    <h:outputText value="Alt:" />
+		                    <h:outputText value="#{result.alt}"/>
+		                    
+		                    <h:outputText value="Persons:" />
+		                    <h:outputText value="#{result.personsAsString}" style="font-weight: bold"/>
+		                </h:panelGrid>
+		            </p:outputPanel>
+		        </h:panelGrid>
+		    </p:dataScroller>
+		</h:form>
+          
+    </h:body>  
+</html> 
